@@ -8,13 +8,12 @@ import (
 	"net/http"
 	"os"
 	"time"
-
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/aws/session"
 	"github.com/aws/aws-sdk-go/service/cloudwatchlogs"
 	"github.com/satori/go.uuid"
-
 	"gopkg.in/mcuadros/go-syslog.v2"
+	"gopkg.in/mcuadros/go-syslog.v2/format"
 )
 
 var port = os.Getenv("PORT")
@@ -41,11 +40,10 @@ func main() {
 		port = "514"
 	}
 
-	address := fmt.Sprintf("0.0.0.0:%v", port)
+	address := fmt.Sprintf("127.0.0.1:%v", port)
 	log.Println("Starting syslog server on", address)
 	log.Println("Logging to group:", logGroupName)
 	initCloudWatchStream()
-
 	channel := make(syslog.LogPartsChannel)
 	handler := syslog.NewChannelHandler(channel)
 
@@ -66,7 +64,7 @@ func main() {
 	server.Wait()
 }
 
-func sendToCloudWatch(logPart syslog.LogParts) {
+func sendToCloudWatch(logPart format.LogParts) {
 	// service is defined at run time to avoid session expiry in long running processes
 	var svc = cloudwatchlogs.New(session.New())
 	// set the AWS SDK to use our bundled certs for the minimal container (certs from CoreOS linux)
